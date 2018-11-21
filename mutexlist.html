@@ -1,11 +1,25 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 	<head>
-		<title>Active mutexes</title>
+		<title>Mutex dashboard</title>
 		<meta charset="UTF-8">
 	</head>
 	<body>
-		<h1>Active mutexes</h1>
+		<h1>Mutex dashboard</h1>
+		<div>
+			<fieldset>
+				<legend>Available services</legend>
+				<ul>
+					{{ range $service := . }}
+						<li>
+							<a href="#{{ $service.Name }}">
+								{{ $service.Name }}
+							</a>
+						</li>
+					{{ end }}
+				</ul>
+			</fieldset>
+		</div>
 		{{ range $service := . }}
 			<h2 id="{{ $service.Name }}">
 				{{ $service.Name }}
@@ -16,7 +30,8 @@
 				</div>
 			{{ else }}
 				<div>
-					<table rules="all">
+					<!-- just for debugging, TODO: CSS -->
+					<table border="1" rules="all">
 						<tr>
 							<th>Mutex name</th>
 							<th>Owner hostname</th>
