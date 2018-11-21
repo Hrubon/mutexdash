@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>Active mutexes</title>
+		<meta charset="UTF-8">
+	</head>
+	<body>
+		<h1>Active mutexes</h1>
+		{{ range $service := . }}
+			<h2 id="{{ $service.Name }}">
+				{{ $service.Name }}
+			</h2>
+			{{ if not $service.Mutexes }}
+				<div>
+					<p>This service does not hold any mutexes.</p>
+				</div>
+			{{ else }}
+				<div>
+					<table rules="all">
+						<tr>
+							<th>Mutex name</th>
+							<th>Owner hostname</th>
+							<th>Locked since</th>
+							<th>Description</th>
+							<th>Unlock</th>
+						</tr>
+						{{ range $mutex := $service.Mutexes }}
+							<tr>
+								<td>{{ $mutex.Name }}</td>
+								<td>{{ $mutex.Hostname }}</td>
+								<td>{{ $mutex.Timestamp.Format "02-01-2006 15:04:05" }}</td>
+								<td>{{ $mutex.Description }}</td>
+								<td>
+									<form action="/mutex/unlock" method="POST" onsubmit="return confirm(
+											'Do you really want to unlock mutex named \'{{ $mutex.Name }}\'?');">
+										<input type="hidden" name="etcdPath" value="{{ $mutex.EtcdPath }}">
+										<input type="hidden" name="prevService" value="{{ $service.Name }}">
+										<input name="submit" type="submit" value="Unlock">
+									</form>
+								</td>
+							</tr>
+						{{ end }}
+					</table>
+				</div>
+			{{ end }}
+		{{ end }}
+	</body>
+</html>
