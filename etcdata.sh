@@ -19,7 +19,7 @@ etcdctl rm -r /mutexes
 etcdctl set /mutexes/user_lists/progress_update/held ""
 etcdctl set /mutexes/user_lists/progress_update/owner/hostname `genname`
 etcdctl set /mutexes/user_lists/progress_update/owner/since `randdate`
-etcdctl set /mutexes/user_lists/progress_update/owner/help "Updates status of the user's progress bar."
+etcdctl set /mutexes/user_lists/progress_update/owner/help "Updates status of the user's progress bar. Updates status of the user's progress bar. Updates status of the user's progress bar." 
 
 etcdctl set /mutexes/user_lists/delete/held ""
 etcdctl set /mutexes/user_lists/delete/owner/hostname `genname` 

@@ -1,63 +1,68 @@
 <!DOCTYPE html>
 <html lang="en">
 	<head>
-		<title>Mutex dashboard</title>
+		<title>Mutex Dashboard</title>
 		<meta charset="UTF-8">
+		<link rel="stylesheet"
+			href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css"
+			integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO"
+			crossorigin="anonymous">
 	</head>
-	<body>
-		<h1>Mutex dashboard</h1>
-		<div>
-			<fieldset>
-				<legend>Available services</legend>
-				<ul>
-					{{ range $service := . }}
-						<li>
-							<a href="#{{ $service.Name }}">
+	<body class="container mt-5">
+		<h1>Mutex Dashboard</h1>
+		<fieldset class="my-5">
+			<legend class="card-title">Available Services:</legend>
+			<ul class="list-group">
+				{{ range $service := . }}
+					{{ if $service.Mutexes }}
+						<li class="list-group-item list-group-item-action d-flex">
+							<a href="#{{ $service.Name }}" class="flex-fill">
 								{{ $service.Name }}
 							</a>
 						</li>
 					{{ end }}
-				</ul>
-			</fieldset>
-		</div>
+				{{ end }}
+			</ul>
+		</fieldset>
+		<div class="container-fluid">
 		{{ range $service := . }}
-			<h2 id="{{ $service.Name }}">
-				{{ $service.Name }}
-			</h2>
-			{{ if not $service.Mutexes }}
-				<div>
-					<p>This service does not hold any mutexes.</p>
-				</div>
-			{{ else }}
-				<div>
-					<!-- just for debugging, TODO: CSS -->
-					<table border="1" rules="all">
-						<tr>
-							<th>Mutex name</th>
-							<th>Owner hostname</th>
-							<th>Locked since</th>
-							<th>Description</th>
-							<th>Unlock</th>
+			{{ if $service.Mutexes }}
+				<h2 id="{{ $service.Name }}">
+					{{ $service.Name }}
+				</h2>
+				<table class="table table-striped table-hover my-4">
+					<thead class="thead-light">
+						<tr class="row">
+							<th class="col">Mutex name</th>
+							<th class="col">Owner hostname</th>
+							<th class="col">Locked since</th>
+							<th class="col">Description</th>
+							<th class="col"></th>
 						</tr>
+					</thead>
+					<tbody>
 						{{ range $mutex := $service.Mutexes }}
-							<tr>
-								<td>{{ $mutex.Name }}</td>
-								<td>{{ $mutex.Hostname }}</td>
-								<td>{{ $mutex.Timestamp.Format "02-01-2006 15:04:05" }}</td>
-								<td>{{ $mutex.Description }}</td>
-								<td>
+							<tr class="row">
+								<td class="col">
+									<em>{{ $mutex.Name }}</em>
+								</td>
+								<td class="col">{{ $mutex.Hostname }}</td>
+								<td class="col">{{ $mutex.Timestamp.Format "02-01-2006 15:04:05" }}</td>
+								<td class="col">{{ $mutex.Description }}</td>
+								<td class="col">
 									<form action="/mutex/unlock" method="POST" onsubmit="return confirm(
 											'Do you really want to unlock mutex named \'{{ $mutex.Name }}\'?');">
 										<input type="hidden" name="etcdPath" value="{{ $mutex.EtcdPath }}">
 										<input type="hidden" name="prevService" value="{{ $service.Name }}">
-										<input name="submit" type="submit" value="Unlock">
+										<input name="submit" type="submit" value="Unlock" class="btn btn-warning">
 									</form>
 								</td>
 							</tr>
 						{{ end }}
-					</table>
-				</div>
+					</tbody>
+				</table>
 			{{ end }}
 		{{ end }}
+		</div>
 	</body>
 </html>
