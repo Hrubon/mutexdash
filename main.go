@@ -39,7 +39,7 @@ func httpError(w http.ResponseWriter, httpCode int, err error) {
 }
 
 func assertHttpMethod(w http.ResponseWriter, r *http.Request, method string) bool {
-	if r.Method != method {
+if r.Method != method {
 		msg := fmt.Sprintf("HTTP method '%s' is not allowed, use '%s' method instead", r.Method, method)
 		httpError(w, http.StatusMethodNotAllowed, errors.New(msg))
 		return false
@@ -85,10 +85,14 @@ func main() {
 			}
 			t, err := template.ParseFiles("mutexlist.html")
 			if err != nil {
-				httpError(w, http.StatusNotFound, err)
+				httpError(w, http.StatusInternalServerError, err)
 				return
 			}
-			t.Execute(w, mList)
+			err = t.Execute(w, mList)
+			if err != nil {
+				httpError(w, http.StatusInternalServerError, err)
+				return
+			}
 		})
 	http.HandleFunc("/mutex/unlock",
 		func (w http.ResponseWriter, r *http.Request) {

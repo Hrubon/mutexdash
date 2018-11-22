@@ -4,12 +4,13 @@ import (
 	"context"
 	"github.com/pkg/errors"
 	"go.etcd.io/etcd/client"
-	"log"
 	"math/rand"
 	"strconv"
 	"strings"
 	"time"
 )
+
+const PathSep = "/"
 
 /* Model definition and initialization */
 
@@ -44,16 +45,16 @@ type Service struct {
 
 /* etcd cluster connection handling */
 
-func (m *model) initEtcdClient(endpoints []string) client.KeysAPI {
+func (m *model) initEtcdClient(endpoints []string) (client.KeysAPI, error) {
 	cfg := client.Config {
 		Endpoints: endpoints,
 	}
 	c, err := client.New(cfg)
-	cli := client.NewKeysAPI(c)
 	if err != nil {
-		log.Fatal(err)
+		return nil, err
 	}
-	return cli
+	cli := client.NewKeysAPI(c)
+	return cli, nil
 }
 
 func (m *model) getTOContext() (context.Context, context.CancelFunc) {
@@ -65,27 +66,29 @@ func (m *model) getTOContext() (context.Context, context.CancelFunc) {
 
 /* Get the last component of the etcd key path */
 func pathLast(path string) string {
-	return path[strings.LastIndex(path, "/") + 1:]
+	return path[strings.LastIndex(path, PathSep) + 1:]
 }
 
 /* Get descendant of given root node by its relative path from root */
 func getDesc(root *client.Node, path string) *client.Node {
-	i := strings.Index(path, "/")
+	if !root.Dir {
+		return nil
+	}
+	i := strings.Index(path, PathSep)
 	if i == -1 {
 		for _, node := range root.Nodes {
 			if pathLast(node.Key) == path {
 				return node
 			}
 		}
-		return nil
 	} else {
 		for _, node := range root.Nodes {
 			if pathLast(node.Key) == path[:i] {
 				return getDesc(node, path[i + 1:])
 			}
 		}
-		return nil
 	}
+	return nil
 }
 
 /* Get the descendant's value as string */
@@ -112,12 +115,18 @@ func getDescTimeVal(root *client.Node, path string) time.Time {
 	}
 }
 
+/* Model public API */
+
+/* Test all endpoints by issuing `get` request with root namespace key */
 func (m *model) TestConnection() error {
 	for _, endpoint := range m.etcdEndpoints {
-		cli := m.initEtcdClient([]string{endpoint})
+		cli, err := m.initEtcdClient([]string{endpoint})
+		if err != nil {
+			return err
+		}
 		ctx, cancel := m.getTOContext()
 		defer cancel()
-		_, err := cli.Get(ctx, m.etcdRootNs, nil)
+		_, err = cli.Get(ctx, m.etcdRootNs, nil)
 		if err != nil {
 			return err
 		}
@@ -125,11 +134,12 @@ func (m *model) TestConnection() error {
 	return nil
 }
 
-/* Model public API */
-
 /* List all mutexes from the root namespace and group them by services */
 func (m *model) ListMutexes() ([]*Service, error) {
-	cli := m.initEtcdClient(m.etcdEndpoints)
+	cli, err := m.initEtcdClient(m.etcdEndpoints)
+	if err != nil {
+		return nil, err
+	}
 	ctx, cancel := m.getTOContext()
 	defer cancel()
 	ns := m.etcdRootNs
@@ -146,7 +156,7 @@ func (m *model) ListMutexes() ([]*Service, error) {
 		if serviceNode.Dir {
 			mutexes := make([]*Mutex, 0)
 			for _, mutexNode := range serviceNode.Nodes {
-				if getDesc(mutexNode, "held") != nil {
+				if mutexNode.Dir && getDesc(mutexNode, "held") != nil {
 					mutexes = append(mutexes, &Mutex{
 						Name: pathLast(mutexNode.Key),
 						Hostname: getDescStrVal(mutexNode, "owner/hostname"),
@@ -167,12 +177,15 @@ func (m *model) ListMutexes() ([]*Service, error) {
 
 /* Delete (unlock) mutex from etcd cluster and all of its metadata */
 func (m *model) UnlockMutex(mutexPath string) error {
-	cli := m.initEtcdClient(m.etcdEndpoints)
+	cli, err := m.initEtcdClient(m.etcdEndpoints)
+	if err != nil {
+		return err
+	}
 	ctx, cancel := m.getTOContext()
 	defer cancel()
-	_, err := cli.Delete(ctx, mutexPath, &client.DeleteOptions{ Recursive: true })
+	_, err = cli.Delete(ctx, mutexPath, &client.DeleteOptions{ Recursive: true })
 	if err != nil && client.IsKeyNotFound(err) {
-		return errors.Wrapf(err, "mutex named '%s' does not exists", mutexPath)
+		return errors.Wrapf(err, "mutex named '%s' does not exist", mutexPath)
 	}
 	return err
 }

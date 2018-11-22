@@ -43,8 +43,8 @@ etcdctl set /mutexes/user_profile/logout/owner/since `randdate`
 etcdctl set /mutexes/user_profile/logout/owner/help "Logs out the user."
 
 etcdctl set /mutexes/user_profile/set_last_login/held ""
-etcdctl set /mutexes/user_profile/set_last_login/hostname `genname`
-etcdctl set /mutexes/user_profile/set_last_login/since `randdate`
+etcdctl set /mutexes/user_profile/set_last_login/owner/hostname `genname`
+etcdctl set /mutexes/user_profile/set_last_login/owner/since `randdate`
 
 # Billing
 
