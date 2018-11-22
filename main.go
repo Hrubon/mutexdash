@@ -83,7 +83,7 @@ func main() {
 				httpError(w, http.StatusInternalServerError, err)
 				return
 			}
-			t, err := template.ParseFiles("mutexlist.html")
+			t, err := template.ParseFiles("templates/mutexlist.html")
 			if err != nil {
 				httpError(w, http.StatusInternalServerError, err)
 				return
