@@ -20,7 +20,7 @@ type model struct{
 	etcdRootNs string
 }
 
-func NewModel(etcdEndpoints []string, etcdTO int, etcdRootNs string) *model {
+func New(etcdEndpoints []string, etcdTO int, etcdRootNs string) *model {
 	return &model{
 		etcdEndpoints: etcdEndpoints,
 		etcdTO: etcdTO,

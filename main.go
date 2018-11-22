@@ -58,9 +58,9 @@ func main() {
 	}
 
 	// Init model and perform upstream check
-	model := model.NewModel(opts.EtcdEndpoints, opts.EtcdTimeout, opts.EtcdRootNs)
+	m := model.New(opts.EtcdEndpoints, opts.EtcdTimeout, opts.EtcdRootNs)
 	if !opts.SkipCheck {
-		err = model.TestConnection()
+		err = m.TestConnection()
 		if err != nil {
 			err = errors.Wrap(err, "Exiting due to a problem with the etcd upstream")
 			fmt.Println(err)
@@ -78,7 +78,7 @@ func main() {
 			if !assertHttpMethod(w, r, "GET") {
 				return
 			}
-			mList, err := model.ListMutexes()
+			mList, err := m.ListMutexes()
 			if err != nil {
 				httpError(w, http.StatusInternalServerError, err)
 				return
@@ -105,7 +105,7 @@ func main() {
 				httpError(w, http.StatusInternalServerError, err)
 				return
 			}
-			err := model.UnlockMutex(etcdPath)
+			err := m.UnlockMutex(etcdPath)
 			if err != nil {
 				httpError(w, http.StatusInternalServerError, err)
 				return
