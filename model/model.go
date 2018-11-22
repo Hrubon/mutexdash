@@ -151,8 +151,8 @@ func (m *model) ListMutexes() ([]*Service, error) {
 			return nil, err
 		}
 	}
-	services := make([]*Service, resp.Node.Nodes.Len())
-	for i, serviceNode := range resp.Node.Nodes {
+	services := make([]*Service, 0)
+	for _, serviceNode := range resp.Node.Nodes {
 		if serviceNode.Dir {
 			mutexes := make([]*Mutex, 0)
 			for _, mutexNode := range serviceNode.Nodes {
@@ -166,9 +166,11 @@ func (m *model) ListMutexes() ([]*Service, error) {
 					})
 				}
 			}
-			services[i] = &Service{
-				Name: pathLast(serviceNode.Key),
-				Mutexes: mutexes,
+			if len(mutexes) > 0 {
+				services = append(services, &Service{
+					Name: pathLast(serviceNode.Key),
+					Mutexes: mutexes,
+				})
 			}
 		}
 	}

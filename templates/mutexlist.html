@@ -12,6 +12,11 @@
 		<h1>Mutex Dashboard</h1>
 		<fieldset class="my-5">
 			<legend class="card-title">Available Services:</legend>
+			{{ if not . }}
+				<p class="alert alert-primary">
+					Currently no service holds any mutexes.
+				</p>
+			{{ end }}
 			<ul class="list-group">
 				{{ range $service := . }}
 					{{ if $service.Mutexes }}
@@ -24,45 +29,47 @@
 				{{ end }}
 			</ul>
 		</fieldset>
-		<div class="container-fluid">
-		{{ range $service := . }}
-			{{ if $service.Mutexes }}
-				<h2 id="{{ $service.Name }}">
-					{{ $service.Name }}
-				</h2>
-				<table class="table table-striped table-hover my-4">
-					<thead class="thead-light">
-						<tr class="row">
-							<th class="col">Mutex name</th>
-							<th class="col">Owner hostname</th>
-							<th class="col">Locked since</th>
-							<th class="col">Description</th>
-							<th class="col"></th>
-						</tr>
-					</thead>
-					<tbody>
-						{{ range $mutex := $service.Mutexes }}
-							<tr class="row">
-								<td class="col">
-									<em>{{ $mutex.Name }}</em>
-								</td>
-								<td class="col">{{ $mutex.Hostname }}</td>
-								<td class="col">{{ $mutex.Timestamp.Format "02-01-2006 15:04:05" }}</td>
-								<td class="col">{{ $mutex.Description }}</td>
-								<td class="col">
-									<form action="/mutex/unlock" method="POST" onsubmit="return confirm(
-											'Do you really want to unlock mutex named \'{{ $mutex.Name }}\'?');">
-										<input type="hidden" name="etcdPath" value="{{ $mutex.EtcdPath }}">
-										<input type="hidden" name="prevService" value="{{ $service.Name }}">
-										<input name="submit" type="submit" value="Unlock" class="btn btn-warning">
-									</form>
-								</td>
-							</tr>
-						{{ end }}
-					</tbody>
-				</table>
-			{{ end }}
+		{{ if . }}
+			<div class="container-fluid">
+				{{ range $service := . }}
+					{{ if $service.Mutexes }}
+						<h2 id="{{ $service.Name }}">
+							{{ $service.Name }}
+						</h2>
+						<table class="table table-striped table-hover my-4">
+							<thead class="thead-light">
+								<tr class="row">
+									<th class="col">Mutex name</th>
+									<th class="col">Owner hostname</th>
+									<th class="col">Locked since</th>
+									<th class="col">Description</th>
+									<th class="col"></th>
+								</tr>
+							</thead>
+							<tbody>
+								{{ range $mutex := $service.Mutexes }}
+									<tr class="row">
+										<td class="col">
+											<em>{{ $mutex.Name }}</em>
+										</td>
+										<td class="col">{{ $mutex.Hostname }}</td>
+										<td class="col">{{ $mutex.Timestamp.Format "02-01-2006 15:04:05" }}</td>
+										<td class="col">{{ $mutex.Description }}</td>
+										<td class="col">
+											<form action="/mutex/unlock" method="POST" onsubmit="return confirm(
+													'Do you really want to unlock mutex named \'{{ $mutex.Name }}\'?');">
+												<input type="hidden" name="etcdPath" value="{{ $mutex.EtcdPath }}">
+												<input type="hidden" name="prevService" value="{{ $service.Name }}">
+												<input name="submit" type="submit" value="Unlock" class="btn btn-warning">
+											</form>
+										</td>
+									</tr>
+								{{ end }}
+							</tbody>
+						</table>
+					{{ end }}
+				{{ end }}
+			</div>
 		{{ end }}
-		</div>
 	</body>
 </html>
