@@ -3,6 +3,7 @@ package model
 import (
 	"context"
 	"github.com/pkg/errors"
+	"github.com/ararog/timeago"
 	"go.etcd.io/etcd/client"
 	"math/rand"
 	"strconv"
@@ -41,6 +42,11 @@ type Mutex struct {
 type Service struct {
 	Name string
 	Mutexes []*Mutex
+}
+
+func (m Mutex) LockedTimeAgo() string {
+	str, _ := timeago.TimeAgoFromNowWithTime(m.Timestamp)
+	return str
 }
 
 /* etcd cluster connection handling */

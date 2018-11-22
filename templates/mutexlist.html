@@ -41,7 +41,7 @@
 								<tr class="row">
 									<th class="col">Mutex name</th>
 									<th class="col">Owner hostname</th>
-									<th class="col">Locked since</th>
+									<th class="col">Locked</th>
 									<th class="col">Description</th>
 									<th class="col"></th>
 								</tr>
@@ -53,7 +53,7 @@
 											<em>{{ $mutex.Name }}</em>
 										</td>
 										<td class="col">{{ $mutex.Hostname }}</td>
-										<td class="col">{{ $mutex.Timestamp.Format "02-01-2006 15:04:05" }}</td>
+										<td class="col">{{ $mutex.LockedTimeAgo }}</td>
 										<td class="col">{{ $mutex.Description }}</td>
 										<td class="col">
 											<form action="/mutex/unlock" method="POST" onsubmit="return confirm(
