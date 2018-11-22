@@ -1,9 +1,15 @@
 FROM golang:1.11
 
-ARG path=/go/src/github.com/Hrubon/mutexdash
-WORKDIR $path
-COPY . .
+ARG pkgpath=/go/src/github.com/Hrubon/mutexdash
+ARG runpath=/opt/showmax/mutexdash
+ENV bin=$runpath/mutexdash
 
-RUN go build $path
+WORKDIR $runpath
 
-CMD ["./mutexdash -e http://127.0.0.1:2379 -l :8080"]
+COPY . $pkgpath
+
+RUN dep ensure
+RUN go build $pkgpath
+RUN cp -r $pkgpath/templates $runpath
+
+ENTRYPOINT [ "/bin/bash", "-c", "$bin -e $ETCD_EPS -t $ETCD_TO -n $ETCD_NS -l $HTTP_LISTEN_ON" ]
